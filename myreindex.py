@@ -4,7 +4,7 @@ from elasticsearch import Elasticsearch
 import requests,json
 
 '''
-   This myreindex.py implements the function reindex, but identifies an new routing key
+   This myreindex.py implements the function reindex, but specifies an new routing key
 in the new index. The routing key is the values of some field value from the old index,
 not the fix value _routing:"=cat"
 '''
