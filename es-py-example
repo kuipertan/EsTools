@@ -1,0 +1,69 @@
+from elasticsearch import Elasticsearch
+client = Elasticsearch('localhost:9201',sniffer_timeout=180)
+
+response = client.search(
+    index="bfd_mf_v2",
+    request_timeout=500,
+    body={
+  "query": {
+    "bool": {
+      "filter": {
+        "range": {
+          "createTime": {
+            "gte": "1475701994274",
+            "lt": "1480947991482"
+          }
+        }
+      }
+    }
+  },
+  "size": 0,
+  "aggs": {
+    "sameurl": {
+      "terms": {
+        "field": "urlHash",
+        "size": 5000
+      },
+      "aggs": {
+        "sameurlgroup": {
+          "top_hits": {
+            "_source": ["channel"],
+            "size": 5
+          }
+        }
+      }
+    }
+  }
+    }
+)
+
+'''
+for hit in response['hits']['hits']:
+    print(hit['_score'], hit['_source']['title'])
+'''
+
+output = open('rmids', 'w')
+for tag in response['aggregations']['sameurl']['buckets']:
+    urlhash = tag['key']
+    count = tag['doc_count']
+    if tag < 2:
+        break
+    docs = tag['sameurlgroup']['hits']['hits']
+    #print(tag['key'], tag['doc_count'], tag['sameurlgroup']['hits']['hits'][0]["_id"])
+    x = -1
+    for i in range(count):
+        if docs[i]['_id'] == urlhash:
+            x = i
+        if docs[i]['_id'] == urlhash and docs[i]['_source']['channel'] == 'hylanda':
+            break;
+    if x == -1:
+        x = 0
+    for i in range(count):
+        if i == x:
+            #print('liuxia:', docs[i]['_id'])
+            continue
+        else:
+            #print('shanchu:', docs[i]['_id'])
+            output.writelines(docs[i]['_type'] + ' ' + docs[i]['_id'] + '\n')
+
+output.close()
