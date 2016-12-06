@@ -19,6 +19,7 @@ QUERY = '''{
     "query":{ 
         "match_all":{} 
     },
+    "sort" : ["_doc"],
     "size": 1000
 }'''
 
